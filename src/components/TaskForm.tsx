@@ -1,72 +1,81 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: 'pending' | 'in-progress' | 'completed';
-  dueDate: string;
-}
+// src/components/TaskForm.tsx
+import React, { useState, useEffect } from "react";
+import { useAppContext } from "./useAppContext";
+import { useNavigate, useParams } from "react-router-dom";
+import type { Task } from "./AppContextTypes";
 
 const TaskForm: React.FC = () => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<'pending' | 'in-progress' | 'completed'>('pending');
-  const [dueDate, setDueDate] = useState('');
-
+  const { id } = useParams(); // <- task ID from route
   const navigate = useNavigate();
+  const { tasks, addTask, editTask } = useAppContext();
+
+  const editingTask = id ? tasks.find((t) => t.id === id) : undefined;
+
+  const [title, setTitle] = useState(editingTask?.title || "");
+  const [description, setDescription] = useState(editingTask?.description || "");
+  const [status, setStatus] = useState<Task["status"]>(editingTask?.status || "pending");
+  const [dueDate, setDueDate] = useState(editingTask?.dueDate || "");
+
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title);
+      setDescription(editingTask.description || "");
+      setStatus(editingTask.status || "pending");
+      setDueDate(editingTask.dueDate || "");
+    }
+  }, [editingTask]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const newTask: Task = {
-      id: Date.now().toString(),
+      id: editingTask?.id || Date.now().toString(),
       title,
       description,
       status,
       dueDate,
     };
 
-    // For now: Save to localStorage (or just log it)
-    const existingTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    localStorage.setItem('tasks', JSON.stringify([...existingTasks, newTask]));
+    if (editingTask) {
+      editTask(newTask);
+    } else {
+      addTask(newTask);
+    }
 
-    // Navigate back to dashboard
-    navigate('/dashboard');
+    navigate("/dashboard"); // redirect after save
   };
 
   return (
-    <div>
-      <h1>Create New Task</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Title: </label>
-          <input value={title} onChange={e => setTitle(e.target.value)} required />
-        </div>
+    <form onSubmit={handleSubmit}>
+      <h2>{editingTask ? "Edit Task" : "New Task"}</h2>
 
-        <div>
-          <label>Description: </label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} required />
-        </div>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title"
+        required
+      />
 
-        <div>
-          <label>Status: </label>
-          <select value={status} onChange={e => setStatus(e.target.value as Task['status'])}>
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
+      <textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description"
+      />
 
-        <div>
-          <label>Due Date: </label>
-          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} required />
-        </div>
+      <select value={status} onChange={(e) => setStatus(e.target.value as Task["status"])}>
+        <option value="pending">Pending</option>
+        <option value="in-progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
 
-        <button type="submit">Save Task</button>
-      </form>
-    </div>
+      <input
+        type="date"
+        value={dueDate}
+        onChange={(e) => setDueDate(e.target.value)}
+      />
+
+      <button type="submit">{editingTask ? "Update" : "Add"} Task</button>
+    </form>
   );
 };
 

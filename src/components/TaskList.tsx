@@ -1,23 +1,23 @@
-import React from 'react';
-import TaskItem, { type Task } from './TaskItem';
+// TaskList.tsx
+import React from "react";
+import TaskItem from "./TaskItem";
+import type { Task } from "./AppContextTypes";
 
 interface TaskListProps {
   tasks: Task[];
   onDelete: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete }) => {
-  if (tasks.length === 0) {
-    return <p>No tasks yet.</p>;
-  }
-
+const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete, onEdit }) => {
   return (
-    <ul>
-      {tasks.map(task => (
-        <TaskItem key={task.id} task={task} onDelete={onDelete} />
+    <div>
+      {tasks.map((task) => (
+        <TaskItem key={task.id} task={task} onDelete={onDelete} onEdit={onEdit} />
       ))}
-    </ul>
+    </div>
   );
 };
 
 export default TaskList;
+

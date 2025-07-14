@@ -1,30 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import TaskList from "./TaskList";
-import type { Task } from "./TaskItem";
-import { Link } from "react-router-dom";
-
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Sample Task 1",
-    description: "Description for task 1",
-    status: "pending",
-    dueDate: "2025-07-10"
-  },
-  {
-    id: "2",
-    title: "Sample Task 2",
-    description: "Description for task 2",
-    status: "in-progress",
-    dueDate: "2025-07-12"
-  }
-];
+import { Link, useNavigate } from "react-router-dom";
+import { useAppContext } from "./useAppContext";
 
 const Dashboard: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const { tasks, deleteTask } = useAppContext();
+  const navigate = useNavigate(); 
 
-  const handleDelete = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
+  const handleEdit = (taskId: string) => {
+    navigate(`/tasks/${taskId}/edit`);
   };
 
   return (
@@ -33,9 +17,10 @@ const Dashboard: React.FC = () => {
       <Link to="/tasks/new">
         <button>Add New Task</button>
       </Link>
-      <TaskList tasks={tasks} onDelete={handleDelete} />
+      <TaskList tasks={tasks} onDelete={deleteTask} onEdit={handleEdit} />
     </div>
   );
 };
 
 export default Dashboard;
+
